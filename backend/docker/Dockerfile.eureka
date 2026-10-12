@@ -1,0 +1,17 @@
+FROM maven:3.9.5-eclipse-temurin-17 AS build
+WORKDIR /app
+COPY pom.xml .
+COPY common-lib/pom.xml common-lib/
+COPY eureka-server/pom.xml eureka-server/
+RUN mvn dependency:go-offline -B -pl eureka-server -am 2>/dev/null || true
+COPY common-lib/src common-lib/src
+COPY eureka-server/src eureka-server/src
+RUN mvn clean package -DskipTests -pl eureka-server -am
+
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+RUN addgroup -S tradelect && adduser -S tradelect -G tradelect
+COPY --from=build /app/eureka-server/target/*.jar app.jar
+USER tradelect
+EXPOSE 8761
+ENTRYPOINT ["java","-jar","-Djava.security.egd=file:/dev/./urandom","-XX:+UseContainerSupport","-XX:MaxRAMPercentage=75.0","app.jar"]

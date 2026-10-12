@@ -1,0 +1,17 @@
+FROM maven:3.9.5-eclipse-temurin-17 AS build
+WORKDIR /app
+COPY pom.xml .
+COPY common-lib/pom.xml common-lib/
+COPY order-service/pom.xml order-service/
+RUN mvn dependency:go-offline -B -pl order-service -am 2>/dev/null || true
+COPY common-lib/src common-lib/src
+COPY order-service/src order-service/src
+RUN mvn clean package -DskipTests -pl order-service -am
+
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+RUN addgroup -S tradelect && adduser -S tradelect -G tradelect
+COPY --from=build /app/order-service/target/*.jar app.jar
+USER tradelect
+EXPOSE 8083
+ENTRYPOINT ["java","-jar","-Djava.security.egd=file:/dev/./urandom","-XX:+UseContainerSupport","-XX:MaxRAMPercentage=75.0","app.jar"]

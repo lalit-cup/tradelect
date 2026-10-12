@@ -1,0 +1,100 @@
+server:
+  port: ${SERVER_PORT:8081}
+
+spring:
+  application:
+    name: auth-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/tradelect_auth?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC}
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+  mail:
+    host: ${MAIL_SMTP_HOST:smtp.qlc.co.in}
+    port: ${MAIL_SMTP_PORT:465}
+    username: ${MAIL_USERNAME:project@intactautomation.com}
+    password: ${MAIL_PASSWORD:changeme}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+          socketFactory:
+            port: 465
+            class: javax.net.ssl.SSLSocketFactory
+            fallback: false
+          starttls:
+            enable: false
+        transport:
+          protocol: smtp
+    from-display: ${MAIL_FROM_DISPLAY:noreply@tradelect.com}
+    from-name: ${MAIL_FROM_NAME:Tradelect}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        max.block.ms: 3000
+        request.timeout.ms: 3000
+        delivery.timeout.ms: 5000
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+    fail-fast: false
+    registry-fetch-interval-seconds: 5
+  instance:
+    preferIpAddress: true
+    hostname: ${HOSTNAME:localhost}
+
+jwt:
+  secret: ${JWT_SECRET:tradelect-super-secret-jwt-key-must-be-at-least-256-bits-long!}
+  access-token-expiry: ${JWT_ACCESS_EXPIRY:86400000}
+  refresh-token-expiry: ${JWT_REFRESH_EXPIRY:604800000}
+
+otp:
+  expiry-minutes: 10
+
+admin:
+  invite-key: ${ADMIN_INVITE_KEY:TRADELECT_ADMIN_2025}
+
+logging:
+  level:
+    com.tradelect: INFO
+    org.springframework.mail: WARN
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}

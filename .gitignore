@@ -1,0 +1,30 @@
+# Environment files - NEVER commit these
+.env
+.env.local
+.env.production.local
+
+# Frontend build output
+frontend/build/
+frontend/node_modules/
+
+# Java build output
+**/target/
+**/.mvn/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# SSL certs
+nginx/ssl/*.pem
+nginx/ssl/*.key
+nginx/ssl/*.crt

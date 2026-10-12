@@ -1,0 +1,17 @@
+FROM maven:3.9.5-eclipse-temurin-17 AS build
+WORKDIR /app
+COPY pom.xml .
+COPY common-lib/pom.xml common-lib/
+COPY api-gateway/pom.xml api-gateway/
+RUN mvn dependency:go-offline -B -pl api-gateway -am 2>/dev/null || true
+COPY common-lib/src common-lib/src
+COPY api-gateway/src api-gateway/src
+RUN mvn clean package -DskipTests -pl api-gateway -am
+
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+RUN addgroup -S tradelect && adduser -S tradelect -G tradelect
+COPY --from=build /app/api-gateway/target/*.jar app.jar
+USER tradelect
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","-Djava.security.egd=file:/dev/./urandom","-XX:+UseContainerSupport","-XX:MaxRAMPercentage=75.0","app.jar"]

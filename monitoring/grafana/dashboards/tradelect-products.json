@@ -1,0 +1,80 @@
+{
+  "id": null,
+  "uid": "tradelect-products",
+  "title": "Tradelect — Products & Business Metrics",
+  "tags": ["tradelect","business"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "Product API Calls / min",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count{application='product-service'}[1m]))*60", "legendFormat": "req/min" }],
+      "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color":"green","value":0},{"color":"yellow","value":50},{"color":"red","value":200}] } } },
+      "options": { "colorMode": "background", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "id": 2, "type": "stat", "title": "Product Searches / min",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count{application='product-service',uri='/api/products'}[1m]))*60", "legendFormat": "" }],
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "options": { "colorMode": "background", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "id": 3, "type": "stat", "title": "Bids / min",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count{application='order-service',uri=~'.*/bids',method='POST'}[1m]))*60", "legendFormat": "" }],
+      "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color":"green","value":0}] } } },
+      "options": { "colorMode": "background", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "id": 4, "type": "stat", "title": "Enquiries / min",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count{application='order-service',uri=~'.*/enquiries',method='POST'}[1m]))*60", "legendFormat": "" }],
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "options": { "colorMode": "background", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "id": 5, "type": "timeseries", "title": "Product Service — Requests by Endpoint",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "targets": [{ "expr": "sum by (uri, method) (rate(http_server_requests_seconds_count{application='product-service'}[2m]))*60", "legendFormat": "{{method}} {{uri}}" }],
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } }
+    },
+    {
+      "id": 6, "type": "timeseries", "title": "Order Service — Requests by Endpoint",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "targets": [{ "expr": "sum by (uri, method) (rate(http_server_requests_seconds_count{application='order-service'}[2m]))*60", "legendFormat": "{{method}} {{uri}}" }],
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } }
+    },
+    {
+      "id": 7, "type": "timeseries", "title": "Notifications Sent (Kafka events)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "targets": [
+        { "expr": "sum(rate(http_server_requests_seconds_count{application='notification-service'}[1m]))*60", "legendFormat": "notification ops/min" },
+        { "expr": "sum(rate(kafka_consumer_fetch_manager_records_consumed_total{application='notification-service'}[1m]))*60", "legendFormat": "kafka messages/min" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "short" } }
+    },
+    {
+      "id": 8, "type": "timeseries", "title": "Auth Service — Login Rate",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count{application='auth-service',uri=~'.*/login'}[1m]))*60", "legendFormat": "logins/min" }],
+      "fieldConfig": { "defaults": { "unit": "short" } }
+    },
+    {
+      "id": 9, "type": "timeseries", "title": "Product Service — Response Time Percentiles",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 20 },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{application='product-service'}[1m])) by (le))", "legendFormat": "p50" },
+        { "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application='product-service'}[1m])) by (le))", "legendFormat": "p95" },
+        { "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{application='product-service'}[1m])) by (le))", "legendFormat": "p99" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" } }
+    }
+  ]
+}

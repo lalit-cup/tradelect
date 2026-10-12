@@ -1,0 +1,100 @@
+{
+  "id": null,
+  "uid": "tradelect-overview",
+  "title": "Tradelect — Platform Overview",
+  "tags": ["tradelect"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "HTTP Requests / min",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count[1m]))*60", "legendFormat": "req/min" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color":"green","value":0},{"color":"yellow","value":100},{"color":"red","value":500}] } } }
+    },
+    {
+      "id": 2, "type": "stat", "title": "Error Rate (5xx)",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count{status=~'5..'}[1m]))*60", "legendFormat": "errors/min" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color":"green","value":0},{"color":"red","value":1}] } } }
+    },
+    {
+      "id": 3, "type": "stat", "title": "Avg Response Time",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "targets": [{ "expr": "sum(rate(http_server_requests_seconds_sum[1m])) / sum(rate(http_server_requests_seconds_count[1m]))", "legendFormat": "avg" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "unit": "s", "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color":"green","value":0},{"color":"yellow","value":0.5},{"color":"red","value":2}] } } }
+    },
+    {
+      "id": 4, "type": "stat", "title": "JVM Heap Used",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "targets": [{ "expr": "sum(jvm_memory_used_bytes{area='heap'})", "legendFormat": "heap" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    },
+    {
+      "id": 5, "type": "stat", "title": "Active Services",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "targets": [{ "expr": "count(up == 1)", "legendFormat": "online" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color":"red","value":0},{"color":"yellow","value":3},{"color":"green","value":6}] } } }
+    },
+    {
+      "id": 6, "type": "stat", "title": "Kafka Consumer Lag",
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "targets": [{ "expr": "sum(kafka_consumer_fetch_manager_records_lag) or vector(0)", "legendFormat": "lag" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "thresholds" }, "thresholds": { "steps": [{"color":"green","value":0},{"color":"yellow","value":100},{"color":"red","value":1000}] } } }
+    },
+    {
+      "id": 7, "type": "timeseries", "title": "HTTP Requests by Service",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "targets": [{ "expr": "sum by (application) (rate(http_server_requests_seconds_count[1m]))*60", "legendFormat": "{{application}}" }],
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } }
+    },
+    {
+      "id": 8, "type": "timeseries", "title": "P99 Response Time by Service",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "targets": [{ "expr": "histogram_quantile(0.99, sum by (application, le) (rate(http_server_requests_seconds_bucket[1m])))", "legendFormat": "{{application}} p99" }],
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } }
+    },
+    {
+      "id": 9, "type": "timeseries", "title": "HTTP Error Rate by Service",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "targets": [{ "expr": "sum by (application) (rate(http_server_requests_seconds_count{status=~'4..|5..'}[1m]))*60", "legendFormat": "{{application}}" }],
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "fillOpacity": 20 } } }
+    },
+    {
+      "id": 10, "type": "timeseries", "title": "JVM Heap Usage by Service",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "targets": [
+        { "expr": "jvm_memory_used_bytes{area='heap'}", "legendFormat": "{{application}} used" },
+        { "expr": "jvm_memory_max_bytes{area='heap'}", "legendFormat": "{{application}} max" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    },
+    {
+      "id": 11, "type": "table", "title": "Service Health",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 20 },
+      "targets": [{ "expr": "up", "legendFormat": "{{job}}", "instant": true, "format": "table" }],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [{ "matcher": { "id": "byName", "options": "Value" }, "properties": [{ "id": "mappings", "value": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }] }, { "id": "custom.displayMode", "value": "color-text" }] }]
+      },
+      "options": { "sortBy": [{ "displayName": "job" }] }
+    },
+    {
+      "id": 12, "type": "timeseries", "title": "CPU Usage by Service",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 20 },
+      "targets": [{ "expr": "process_cpu_usage", "legendFormat": "{{application}}" }],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "max": 1 } }
+    }
+  ]
+}
