@@ -78,7 +78,6 @@ export default function MyOrders() {
       .finally(() => setLoading(false));
   };
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => { fetchOrders(); }, [page]);
 
   const handleCancel = async (id) => {

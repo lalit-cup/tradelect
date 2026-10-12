@@ -57,7 +57,6 @@ export default function MyBids() {
       .finally(() => setLoading(false));
   };
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => { fetchBids(); }, [page]);
 
   const handleCancel = async (id) => {
